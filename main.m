@@ -13,7 +13,7 @@ tic
 had = 0;
 square = 1;
 Q = 0;
-% parameter= input(BIBD7(),had); %  = [7,7,3,9.5277];
+% parameter= input(BIBD7(),had); %  = [7,7,3,9.5277]; test
 parameter = [8 8 3 4];
 My = GA_Opt(); % default values of the option field
 My.numberOfGenerations = 10;  % 250
