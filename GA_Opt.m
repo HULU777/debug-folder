@@ -1,0 +1,23 @@
+function My = GA_Opt()
+MPPM = BIBD7();
+My.coding = 'None';
+My.fitnessmethod = 'Q';
+parameter = input(MPPM,My.coding,My.fitnessmethod);
+My.numberOfGenerations = 300;  % 250
+My.Z = parameter(1);
+My.B = parameter(2);
+My.M = parameter(3);
+My.optimald = parameter(4);
+My.optimalf =parameter(5);
+My.populationSize = 300; % 150 ;
+My.crossoverProbability = 0.1 ;
+My.mutationProbability = 0.09; % 0.0625;
+My.scalemethod = 'exp';
+My.tournamentSize = 2;  %10
+My.numberOfReplications = 0;  %2
+My.stopmethod = 'fitness';
+My.name = [My.coding,'+',My.fitnessmethod,'+',My.scalemethod];
+My.C = 100;
+My.c = 3;
+My.Qdominant = 3;
+end
