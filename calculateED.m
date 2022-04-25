@@ -1,4 +1,4 @@
-function [mindproperty,distance] = calculateED(matrix,P)   % ,table  dmatrix  ,P
+function [mindproperty,distance] = calculateED(matrix,P,countdmin)   % ,table  dmatrix  ,P
 % calculate the Euclidean mind of a given codebook  
 % when P = 1, averge symbol power  = 1,
 % calculate the dmin of codebook of EsNo=1 (No=1,Es = EsNo)
@@ -20,16 +20,19 @@ function [mindproperty,distance] = calculateED(matrix,P)   % ,table  dmatrix  ,P
         end
     end
     distance = reshape(distance_eachpoint,1,[]);
-%     dmin = min(distance);
-%     mindproperty(1,1) = dmin;
-%     distancefindAdmin = round(distance*10000);
-%     dmin10000 = round(dmin*10000);
-%     mindproperty(1,2) = length(find(distancefindAdmin  == dmin10000)); 
-    distance = round(100000*distance);
-    distancetable = tabulate(distance);
-    dmincountidx = find(distancetable(:,2));
-    mindproperty =  distancetable(dmincountidx,[1,2]);
-    mindproperty(:,1) = mindproperty(:,1)/100000;
+    if countdmin ==1
+        dmin = min(distance);
+        mindproperty(1,1) = dmin;
+        distancefindAdmin = round(distance*10000);
+        dmin10000 = round(dmin*10000);
+        mindproperty(1,2) = length(find(distancefindAdmin  == dmin10000)); 
+    else 
+        distance = round(100000*distance);
+        distancetable = tabulate(distance);
+        dmincountidx = find(distancetable(:,2));
+        mindproperty =  distancetable(dmincountidx,[1,2]);
+        mindproperty(:,1) = mindproperty(:,1)/100000;
+    end
     disp('mind:'); disp(mindproperty(1,1));
 end
         

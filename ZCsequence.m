@@ -9,7 +9,7 @@ L = parameter(4);
 N = B*L;
 bits = L*log2(B);
 EbNo = 1;
-countdmin = 0;
+countdmin = 1;
 k= 0:lengthM-1;
 F = zeros(lengthM,lengthM*(lengthM-1));
 for u = 1: lengthM-1
@@ -23,12 +23,12 @@ end
 SNRrangedB = -6:1:4;
 EbNoRangeSNRdB = SNRrangedB - 10* log10( bits);
 
-EbNoRangedB = -2:10;
-i = 1; dminforUnitPowerbest = 0;
-while i <=100
+EbNoRangedB = -2:0.2:10;
+i = 1; dminforUnitPowerbest = 0.9070;
+while i <=500
     cidx = randperm(lengthM*(lengthM-1));
     selectcidx = cidx(1:N);
-    deleteridx = round(rand(lengthM-n)*lengthM);
+    deleteridx = ceil(rand(lengthM-n)*lengthM);
     cmatrix = F(:,selectcidx);
     cmatrix(deleteridx,:) = [];
 
@@ -36,12 +36,15 @@ while i <=100
     if dminforUnitPower > dminforUnitPowerbest
         MPPM_dminbest = MPPM_dmin;
         MPPM_Adminbest = MPPM_Admin;
+        cidxbest = cidx;
+        deleteridxbest = deleteridx;
         dminforUnitPowerbest = dminforUnitPower;
+        break;
     end
     i = i+1;
 end
 disp('dminforUnitPower:'); disp(dminforUnitPowerbest);
-Pe = WEF(MPPM_dmin, MPPM_Admin,Z^L);
+Pe = WEF(MPPM_dminbest, MPPM_Adminbest,Z^L);
 semilogy(EbNoRangedB,Pe); %  SNRrangedB
 xlim([-2,10]); 
 ylim([1e-5,1]);

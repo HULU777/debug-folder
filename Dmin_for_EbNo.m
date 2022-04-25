@@ -9,7 +9,7 @@ function [dmin,Admin,dminforUnitPower] = Dmin_for_EbNo(cmatrix,mppm,L,EbNoRangeD
         signalset(B*(ell-1)+1:B*ell, :) = repmat(kron(mppm,ones(1,B^(L-ell))) , 1 , B^(ell-1) );
     end
     codebook = cmatrix*signalset;
-    [mindproperty,~] = calculateED(codebook,1);   % calculate dmin with symbol power per bit = 1;
+    [mindproperty,~] = calculateED(codebook,1,countdmin);   % calculate dmin with symbol power per bit = 1;
     dminforUnitPower = mindproperty(1,1);
     if countdmin == 0
         countdmin = size(mindproperty,1);

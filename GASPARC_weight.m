@@ -3,23 +3,35 @@ clear; close all; clc;
  %% parameters setting
 runtime = 1;
 % parameter = [16,16,0,500];  %[Z,B,W,D] ;
-parameter = [16,16,0,2,40];  %[Z,B,W,L,D] ;
+parameter = [2^6,2^6,0,2,400];  %[Z,B,W,L,D] ;  [42,43,2^6,2];  %[n,lengthM,B,L]
 Z = parameter(1);
 B = parameter(2);
 L = parameter(4);
 D = parameter(5);
-EbNo = 1;
+EbNo = -10*log10(L*log2(Z));
 weight = 1:floor(parameter(2)/2); weight = weight.';
 % weight = 1;
 A = ones(size(weight,1),runtime)*(-1);
 Dmin = ones(size(weight,1),runtime)*(-1);
 totaltime = ones(size(weight,1),runtime)*(-1);
-codingmatrx = HAD16_32();
+xbestcl = cell(size(weight,1),runtime);
+i = 1; dminbest = 0;
+while i <10
+[codingmatrx,ridx] = HAD42_128(0);
 [Dmin(1,1),A(1,1)] = PPMdmin(Z,L,codingmatrx,EbNo);
-parfor i = 1:length(weight)
+if Dmin(1,1) > dminbest
+    dminbest = Dmin(1,1);
+    ridxbest = ridx;
+end
+i = i+1;
+end
+save('ridx.mat','ridxbest');
+cmatrix = HAD42_128(ridxbest);
+[Dmin(1,1),A(1,1)] = PPMdmin(Z,L,cmatrix,EbNo);
+parfor i = 2:length(weight)
     w = weight(i);
     for j = 1:runtime
-     [totaltime(i,j),Dmin(i,j), A(i,j)] = GASPARCdmin(Z,B,w,L,D);
+     [totaltime(i,j),Dmin(i,j), A(i,j),xbestcl{i,j}] = GASPARCdmin(Z,B,w,L,D,EbNo,cmatrix);
 %             [PPMdmins,PPMAdmins] = PPMdmin(My.Z,My.L,My.cmatrix,EbNoRange(k));
     end
 end
@@ -37,7 +49,7 @@ end
 
 
  
- function [totaltime,mind, Admin]=GASPARCdmin(Z,B,w,L,D,EbNo)
+ function [totaltime,mind, Admin, xBestcl]=GASPARCdmin(Z,B,w,L,D,EbNo,cmatrix)
 % My = GA_Opt(); % default values of the option field
 My.coding ='Hadamard';  % 'None'
 My.fitnessmethod = 'Admin'; %'square';% 'Q';
@@ -62,7 +74,7 @@ My.expscaleoffset = 0;
 My.Qdominant = 3;
 My.numberOfReplications = 1;
 My.rankvector = [1 -2];  % [1 -2 3 -4]
-My.cmatrix =HAD16_32();  % HAD4_7()  Remember change L ! eye(My.Z);  HAD5_14()
+My.cmatrix = cmatrix;  % HAD4_7()  Remember change L ! eye(My.Z);  HAD5_14()
 My.L = L ;
 My.alpha = 1;%0.33;
 My.EbNo = EbNo;  % (dB)
