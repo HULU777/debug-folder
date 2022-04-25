@@ -1,21 +1,60 @@
 clear; close all; clc;
 
  %% parameters setting
+EbNoRange =-3:3:21 ; EbNoRange = EbNoRange.';   % 20:27 15:20
+runtime = 1;
+countdmin = 1;  % count ranking the first countdmin dmins
+parameter = [7,7,0,2,40];  %[Z,B,W,L,D] ;
+Z = parameter(1);
+B = parameter(2);
+L = parameter(4);
+D = parameter(5);
+weight = 1:floor(parameter(2)/2); weight = weight.';
+% weight = 1;
+mppmA = ones(size(weight,1),runtime)*(-1);
+mppmD = ones(size(weight,1),runtime)*(-1);
+MPPM_dmin = ones(countdmin,length(EbNoRange),length(weight))*(-1);
+MPPM_Admin = ones(countdmin,length(EbNoRange),length(weight))*(-1);
+Pe = ones(length(weight),length(EbNoRange))*(-1);
+Pe1 = ones(1,length(EbNoRange))*(-1);
+parfor i = 1:length(weight)
+%     pc = rankmatrix(i,:);
+%     pc = pc(pc~=0);
+    %parameter(3) = weight(i);
+    w = weight(i);
+    for j = 1:runtime
+         [xBestcl,My,Ddistribution] = GASPARC(Z,B,w,L,D);
+         [MPPM_dmin(:,:,i),MPPM_Admin(:,:,i)] = Dmin_for_EbNo(My.cmatrix,xBestcl,My.L,EbNoRange,countdmin);
+         Pe(i,:) = WEF(MPPM_dmin(:,:,i), MPPM_Admin(:,:,i),Z^L);
+    end
+end
+
+figure;
+for i= 1:length(weight)
+    semilogy(EbNoRange,Pe(i,:)); hold on;
+end
+title('[7,7,2],L = 2; HAD13\_14');
+% legend on;
+% legend('PPM', 'MPPM');
+
+
+ 
+ function [xBestcl,My,Ddistribution]=GASPARC(Z,B,w,L,D)
 % My = GA_Opt(); % default values of the option field
 My.coding ='Hadamard';  % 'None'
 My.fitnessmethod = 'Admin'; %'square';% 'Q';
 My.selectmethod = 'rankExp';
 % parameter = input_(BIBD7(),My.coding,My.fitnessmethod);
-parameter = [16,16,2,500];%[7,7,3,40] ;%[Z,B,W,D] ; % [26,23,9,10];  [12,12,5,6]
-My.Z = parameter(1);
-My.B = parameter(2);
-My.M = parameter(3);
-My.optimald = parameter(4);
+% parameter = [7,7,3,40] ;%[Z,B,W,D] ; % [26,23,9,10];  [12,12,5,6]
+My.Z = Z;
+My.B = B;
+My.M = w;
+My.optimald = D;
 % My.optimalf = parameter(5);
 My.populationSize = 300; % 150 ;
 My.crossoverProbability = 0.1;
 My.mutationProbability = 0.05; % 0.0625;
-My.numberOfGenerations = 1000;  % 250
+My.numberOfGenerations = 200;  % 250
 My.tournamentSize = 2;  %10
 My.numberOfReplications = 0;  %2
 My.C = 100;
@@ -25,8 +64,8 @@ My.expscaleoffset = 0;
 My.Qdominant = 3;
 My.numberOfReplications = 1;
 My.rankvector = [1 -2];  % [1 -2 3 -4]
-My.cmatrix =HAD31_32();  % HAD4_7()  Remember change L ! eye(My.Z);  HAD5_14()
-My.L = 2;
+My.cmatrix =HAD13_14();  % HAD4_7()  Remember change L ! eye(My.Z);  HAD5_14()
+My.L = L ;
 My.alpha = 1;%0.33;
 My.EbNo = 1;  % (dB)
 
@@ -57,6 +96,7 @@ population = initialize(populationSize,M,B,Z);
 oldmind = 0; oldAdmin = 0; tconverge = 0; totaltime = 0;
 
 for iGeneration = 1: numberOfGenerations
+    tic
     switch(My.coding)
         case('Hadamard')
             if cmatrix == 0
@@ -79,7 +119,7 @@ for iGeneration = 1: numberOfGenerations
         case('fitness');[~,bestIndex,check] = checkf(fitness,optimalf);
     end
     
-        if mind == oldmind && oldAdmin == Admin
+    if mind == oldmind && oldAdmin == Admin
         tconverge = tconverge+1;
     else
         tconverge = 0;
@@ -87,13 +127,15 @@ for iGeneration = 1: numberOfGenerations
     oldmind = mind;
     oldAdmin = Admin;
     
-    if check || tconverge>=50 || totaltime >= 600 
+    if check || tconverge>=100 || totaltime >= 600% 7200 control the time per search
+        disp(check);disp(tconverge);disp(totaltime);
         xBest = population(bestIndex,:);
         fprintf('This is time:');
         disp(iGeneration);
         fprintf('searched optimal result: \n');
         xBestcl= reshape(xBest,B,Z);  % a column is a codeword
         disp(num2str(xBestcl));
+%         pause;
         break;
     end
     
@@ -132,14 +174,5 @@ for iGeneration = 1: numberOfGenerations
     totaltime = t1+totaltime;
 end
     t = toc;
+ end
     
-    [PPM_dmin,PPM_Admin] = PPMdmin(Z,L,cmatrix,EbNo);
-    disp('For PPM (same coding matrix):')
-    disp('maxed_dmin:');disp(PPM_dmin);  
-    disp('Admin:');disp(PPM_Admin);  
-    
-    semilogy(EbNo,WEF(PPM_dmin,PPM_Admin),'ro-'); hold on;
-    semilogy(EbNo,WEF(mind,Admin),'b*--'); 
-    title('error performance');
-    legend('PPM', 'MPPM');
-

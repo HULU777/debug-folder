@@ -3,10 +3,11 @@ function [mindproperty,distance] = calculateED(matrix,P)   % ,table  dmatrix  ,P
 % when P = 1, averge symbol power  = 1,
 % calculate the dmin of codebook of EsNo=1 (No=1,Es = EsNo)
     [~,N] = size(matrix);
+    mindproperty = zeros(N,2);
     
     % normalize the average power of codeword to P=n
     % thus, total codebook power is nN. 
-    Cpower = sum(sum(real(matrix).^2))+ sum(sum(imag(matrix).^2));   
+    Cpower = sum(sum(real(matrix).^2));   
     nM = matrix./ sqrt(Cpower/(P*N));    % normMatrix  n*N
 
     
@@ -30,6 +31,5 @@ function [mindproperty,distance] = calculateED(matrix,P)   % ,table  dmatrix  ,P
     dmincountidx = find(distancetable(:,2));
     mindproperty =  distancetable(dmincountidx,[1,2]);
     mindproperty(:,1) = mindproperty(:,1)/100000;
-    disp('mind:'); disp(mindproperty(1,1));
 end
         
