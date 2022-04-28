@@ -33,6 +33,6 @@ function [mindproperty,distance] = calculateED(matrix,P,countdmin)   % ,table  d
         mindproperty =  distancetable(dmincountidx,[1,2]);
         mindproperty(:,1) = mindproperty(:,1)/100000;
     end
-    disp('mind:'); disp(mindproperty(1,1));
+%     disp('mind:'); disp(mindproperty(1,1));
 end
         

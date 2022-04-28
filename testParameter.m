@@ -26,7 +26,7 @@ tic
 %% PARAMETERS
 had = 0;
 % mppm= input(BIBD7(),had); %  [7,7,3,9.5277];  % [11,11,5,4.2858]
-mppm = [8, 8, 3, 4];
+mppm = [512,512, 23, 4];
 populationSize = 300; % 150 ;
 crossoverProbability = 0.1; %0.09 ;
 mutationProbability = 0.01; % 0.0625;

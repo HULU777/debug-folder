@@ -1,20 +1,38 @@
 clear; close all; clc;
+clear;close all;clc;
+run=3;
+% pc = [0.1 0.5];
+% pc = [1 2 3 4 5 6 7 8];  % number of replications
+% pc = [500 1000 1500 2000]; % populationsize
+pc = [0.005 0.05 0.2 0.5 0.8]; % iteration time
+a = length(pc);
+t1 = zeros(a,run);
+iG1 = zeros(a,run);
+f1  = zeros(a,run);
+xBestcl = cell(a,run);
+parfor j = 1: length(pc)
+    for i = 1:run
+        [t1(j,i),iG1(j,i),f1(j,i),xBestcl{j,i}] = timesga(pc(j));
+    end
+end
 
- %% parameters setting
+function [totaltime,tconverge,mind,xBestcl] =  timesga(pc)
+%% parameters setting
 % My = GA_Opt(); % default values of the option field
 My.coding ='Hadamard';  % 'None'
 My.fitnessmethod = 'Admin'; %'square';% 'Q';
 My.selectmethod = 'rankExp';
 % parameter = input_(BIBD7(),My.coding,My.fitnessmethod);
-parameter = [16,16,2,500];%[7,7,3,40] ;%[Z,B,W,D] ; % [26,23,9,10];  [12,12,5,6]
+parameter = [512,512,2,1,500];%[7,7,3,40] ;%[Z,B,W,L,D] ; % [26,23,9,10];  [12,12,5,6]; [16,16,2,500]
 My.Z = parameter(1);
 My.B = parameter(2);
 My.M = parameter(3);
-My.optimald = parameter(4);
+My.L = parameter(4);
+My.optimald = parameter(5);
 % My.optimalf = parameter(5);
 My.populationSize = 300; % 150 ;
-My.crossoverProbability = 0.1;
-My.mutationProbability = 0.05; % 0.0625;
+My.crossoverProbability = pc;
+My.mutationProbability = 0.01; % 0.0625;
 My.numberOfGenerations = 1000;  % 250
 My.tournamentSize = 2;  %10
 My.numberOfReplications = 0;  %2
@@ -25,10 +43,9 @@ My.expscaleoffset = 0;
 My.Qdominant = 3;
 My.numberOfReplications = 1;
 My.rankvector = [1 -2];  % [1 -2 3 -4]
-My.cmatrix =HAD31_32();  % HAD4_7()  Remember change L ! eye(My.Z);  HAD5_14()
-My.L = 2;
-My.alpha = 1;%0.33;
-My.EbNo = 1;  % (dB)
+My.cmatrix = HAD15_512(0);  % HAD4_7()  Remember change L ! eye(My.Z);  HAD5_14()  HAD31_32()
+My.alpha = 0.33;%0.33;
+My.EbNo = -10*log10(My.L*log2(My.Z));  % (dB)
 
 
 %% RUN GENERATIONS
@@ -79,15 +96,16 @@ for iGeneration = 1: numberOfGenerations
         case('fitness');[~,bestIndex,check] = checkf(fitness,optimalf);
     end
     
-        if mind == oldmind && oldAdmin == Admin
+    if mind == oldmind && oldAdmin == Admin
         tconverge = tconverge+1;
     else
         tconverge = 0;
     end
     oldmind = mind;
     oldAdmin = Admin;
+    disp([pc,M,iGeneration,mind]);
     
-    if check || tconverge>=50 || totaltime >= 600 
+    if check || tconverge>=150 || totaltime >= 3000 
         xBest = population(bestIndex,:);
         fprintf('This is time:');
         disp(iGeneration);
@@ -132,14 +150,14 @@ for iGeneration = 1: numberOfGenerations
     totaltime = t1+totaltime;
 end
     t = toc;
-    
-    [PPM_dmin,PPM_Admin] = PPMdmin(Z,L,cmatrix,EbNo);
-    disp('For PPM (same coding matrix):')
-    disp('maxed_dmin:');disp(PPM_dmin);  
-    disp('Admin:');disp(PPM_Admin);  
-    
-    semilogy(EbNo,WEF(PPM_dmin,PPM_Admin),'ro-'); hold on;
-    semilogy(EbNo,WEF(mind,Admin),'b*--'); 
-    title('error performance');
-    legend('PPM', 'MPPM');
+end  
+% [PPM_dmin,PPM_Admin] = PPMdmin(Z,L,cmatrix,EbNo);
+% disp('For PPM (same coding matrix):')
+% disp('maxed_dmin:');disp(PPM_dmin);  
+% disp('Admin:');disp(PPM_Admin);  
+% 
+% semilogy(EbNo,WEF(PPM_dmin,PPM_Admin),'ro-'); hold on;
+% semilogy(EbNo,WEF(mind,Admin),'b*--'); 
+% title('error performance');
+% legend('PPM', 'MPPM');
 

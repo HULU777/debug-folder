@@ -1,14 +1,19 @@
-function [dmin,Admin,dminforUnitPower] = Dmin_for_EbNo(cmatrix,mppm,L,EbNoRangeDB,countdmin)
+function [dmin,Admin,dminforUnitPower] = Dmin_for_EbNo(ridx,mppm,L,EbNoRangeDB,bits,countdmin)
     if size(EbNoRangeDB,1) ==1
         EbNoRangeDB = EbNoRangeDB.';
     end
     [B,Z] = size(mppm);
     signalset = zeros(B*L,Z^L);
-    bits = L*log2(B);
+%     bits = L*log2(B);
     for ell = 1:L
-        signalset(B*(ell-1)+1:B*ell, :) = repmat(kron(mppm,ones(1,B^(L-ell))) , 1 , B^(ell-1) );
+        signalset(B*(ell-1)+1:B*ell, :) = repmat(kron(mppm,ones(1,Z^(L-ell))) , 1 , Z^(ell-1) );
     end
-    codebook = cmatrix*signalset;
+    if size(ridx,1) ==1
+        codebookfull = hadamards(signalset);
+        codebook = codebookfull(ridx,:);
+    else
+        codebook = ridx*signalset;
+    end
     [mindproperty,~] = calculateED(codebook,1,countdmin);   % calculate dmin with symbol power per bit = 1;
     dminforUnitPower = mindproperty(1,1);
     if countdmin == 0

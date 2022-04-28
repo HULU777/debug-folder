@@ -8,7 +8,7 @@
 %     -1    -1     1    -1     1    -1];
 % nM = Hadamardcodings(population,3,3,alpha,L,a);
 
-function [nM,cmatrix] = Hadamardcoding(population,Z,B,alpha,L,cmatrix)   % ,table  dmatrix  ,P
+function [nM,ridx] = Hadamardcoding(population,Z,B,alpha,L,ridx)   % ,table  dmatrix  ,P
 % a cloumn of mppm is a codeword
 %     P = 10^(P/10);
     pSize = size(population,1);
@@ -24,7 +24,7 @@ function [nM,cmatrix] = Hadamardcoding(population,Z,B,alpha,L,cmatrix)   % ,tabl
     % normalize the average power of codeword to P=n, thus, total codebook power is nN. 
     %     Cpower = sum(sum(matrix.^2));   
     %     nM = matrix./ sqrt(Cpower/(P*N));    % normMatrix  n*N
-    if cmatrix == 0
+    if ridx == 0
         hadsize = 2^ceil(log2(Z*L));
         hmatrix = hadamard(hadsize);
         n = ceil(alpha*Z*L);
@@ -37,9 +37,15 @@ function [nM,cmatrix] = Hadamardcoding(population,Z,B,alpha,L,cmatrix)   % ,tabl
         randidxc = randperm(hadsize-1);
         randvalues = values(randidxc);
         columnindex = randvalues(1:Z*L);
-        cmatrix = hmatrix(rowindex,columnindex);
+        ridx = hmatrix(rowindex,columnindex);
     end
-    nM = cmatrix*signalset;
+    if size(ridx,1) ==1
+        nMfull = hadamards(signalset);
+        nM = nMfull(ridx,:);
+    else
+        nM = cmatrix*signalset;
+    end
+    
     nM = reshape(nM,[],pSize);
     nM = nM.';
 end

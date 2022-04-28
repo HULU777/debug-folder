@@ -1,37 +1,44 @@
 clear; close all; clc;
 
  %% parameters setting
+% [15,17,2^7,2] mind = 0.5541;
+% n = 15; k = 9bits; [15,29,2^9,1] mind = 0;
+% n = 16; k = 4,8,10bits; [16,17,2^4,1] [16,17,2^8,1] [16,17,2^5,2]
+% n = 42; k = 12bits; [42,43,2^6,2] mind = 0.9065;
+% n = 64; k = 12,22bits; [64,67,2^12,1] [64,67,2^11,2]
 runtime = 1;
-% parameter = [16,16,0,500];  %[Z,B,W,D] ;
-parameter = [2^6,2^6,0,2,400];  %[Z,B,W,L,D] ;  [42,43,2^6,2];  %[n,lengthM,B,L]
+parameter = [2^5,2^5,0,2,400,16];  %[Z,B,W,L,D] ;  [42,43,2^6,2];  %[Z,B,weight,B,L]
 Z = parameter(1);
 B = parameter(2);
 L = parameter(4);
 D = parameter(5);
+n = parameter(6);
+N = B*L;
 EbNo = -10*log10(L*log2(Z));
-weight = 1:floor(parameter(2)/2); weight = weight.';
+weight = 1:5; weight = weight.';  % floor(parameter(2)/2)
 % weight = 1;
 A = ones(size(weight,1),runtime)*(-1);
 Dmin = ones(size(weight,1),runtime)*(-1);
 totaltime = ones(size(weight,1),runtime)*(-1);
 xbestcl = cell(size(weight,1),runtime);
-i = 1; dminbest = 0;
-while i <10
-[codingmatrx,ridx] = HAD42_128(0);
-[Dmin(1,1),A(1,1)] = PPMdmin(Z,L,codingmatrx,EbNo);
-if Dmin(1,1) > dminbest
-    dminbest = Dmin(1,1);
-    ridxbest = ridx;
-end
-i = i+1;
-end
-save('ridx.mat','ridxbest');
-cmatrix = HAD42_128(ridxbest);
-[Dmin(1,1),A(1,1)] = PPMdmin(Z,L,cmatrix,EbNo);
+ridx = HADidx(n,N);
+% i = 1; dminbest = 0;
+% while i <10
+% [codingmatrx,ridx] = HAD15_512(0);
+% [Dmin(1,1),A(1,1)] = PPMdmin(Z,L,codingmatrx,EbNo);
+% if Dmin(1,1) > dminbest
+%     dminbest = Dmin(1,1);
+%     ridxbest = ridx;
+% end
+% i = i+1;
+% end
+% save('ridx.mat','ridxbest');
+% cmatrix = HAD15_512(ridxbest);
+[Dmin(1,1),A(1,1)] = PPMdmin(Z,L,ridx,EbNo);
 parfor i = 2:length(weight)
     w = weight(i);
     for j = 1:runtime
-     [totaltime(i,j),Dmin(i,j), A(i,j),xbestcl{i,j}] = GASPARCdmin(Z,B,w,L,D,EbNo,cmatrix);
+     [totaltime(i,j),Dmin(i,j), A(i,j),xbestcl{i,j}] = GASPARCdmin(Z,B,w,L,D,EbNo,ridx);
 %             [PPMdmins,PPMAdmins] = PPMdmin(My.Z,My.L,My.cmatrix,EbNoRange(k));
     end
 end
@@ -49,7 +56,7 @@ end
 
 
  
- function [totaltime,mind, Admin, xBestcl]=GASPARCdmin(Z,B,w,L,D,EbNo,cmatrix)
+ function [totaltime,mind, Admin, xBestcl]=GASPARCdmin(Z,B,w,L,D,EbNo,ridx)
 % My = GA_Opt(); % default values of the option field
 My.coding ='Hadamard';  % 'None'
 My.fitnessmethod = 'Admin'; %'square';% 'Q';
@@ -62,8 +69,8 @@ My.M = w;
 My.optimald = D;
 % My.optimalf = parameter(5);
 My.populationSize = 300; % 150 ;
-My.crossoverProbability = 0.1;
-My.mutationProbability = 0.05; % 0.0625;
+My.crossoverProbability = 0.2;
+My.mutationProbability = 0.01; % 0.0625;
 My.numberOfGenerations = 2000;  % 250
 My.tournamentSize = 2;  %10
 My.numberOfReplications = 0;  %2
@@ -74,7 +81,7 @@ My.expscaleoffset = 0;
 My.Qdominant = 3;
 My.numberOfReplications = 1;
 My.rankvector = [1 -2];  % [1 -2 3 -4]
-My.cmatrix = cmatrix;  % HAD4_7()  Remember change L ! eye(My.Z);  HAD5_14()
+My.ridx = ridx;  % HAD4_7()  Remember change L ! eye(My.Z);  HAD5_14()
 My.L = L ;
 My.alpha = 1;%0.33;
 My.EbNo = EbNo;  % (dB)
@@ -97,7 +104,7 @@ c = My.c;
 optimald = My.optimald;
 Qdominant = My.Qdominant;
 rankvector = My.rankvector;
-cmatrix = My.cmatrix;
+ridx = My.ridx;
 alpha = My.alpha;
 L = My.L;
 EbNo = My.EbNo;
@@ -109,10 +116,10 @@ for iGeneration = 1: numberOfGenerations
     tic
     switch(My.coding)
         case('Hadamard')
-            if cmatrix == 0
-               [codedpopulation,cmatrix] = Hadamardcoding(population,Z,B,alpha,L,cmatrix);
+            if ridx == 0
+               [codedpopulation,ridx] = Hadamardcoding(population,Z,B,alpha,L,ridx);
             else
-               [codedpopulation,~] = Hadamardcoding(population,Z,B,alpha,L,cmatrix); 
+               [codedpopulation,~] = Hadamardcoding(population,Z,B,alpha,L,ridx); 
             end
         case('None'); codedpopulation = population;
     end
@@ -136,15 +143,16 @@ for iGeneration = 1: numberOfGenerations
     end
     oldmind = mind;
     oldAdmin = Admin;
+    disp([w,iGeneration,mind]);
     
-    if check || tconverge>=150 || totaltime >= 3000% 7200 control the time per search
+    if check || tconverge>=150 || iGeneration == numberOfGenerations % totaltime >= 3000% 7200 control the time per search
         disp(check);disp(tconverge);disp(totaltime);
         xBest = population(bestIndex,:);
-        fprintf('This is time:');
-        disp(iGeneration);
-        fprintf('searched optimal result: \n');
+%         fprintf('This is time:');
+%         disp(iGeneration);
+%         fprintf('searched optimal result: \n');
         xBestcl= reshape(xBest,B,Z);  % a column is a codeword
-        disp(num2str(xBestcl));
+%         disp(num2str(xBestcl));
 %         pause;
         break;
     end
