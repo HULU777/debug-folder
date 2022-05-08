@@ -43,7 +43,7 @@ function [nM,ridx] = Hadamardcoding(population,Z,B,alpha,L,ridx)   % ,table  dma
         nMfull = hadamards(signalset);
         nM = nMfull(ridx,:);
     else
-        nM = cmatrix*signalset;
+        nM = ridx*signalset;
     end
     
     nM = reshape(nM,[],pSize);

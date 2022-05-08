@@ -6,41 +6,35 @@ clear; close all; clc;
 % n = 16; k = 4,8,10bits; [16,17,2^4,1] [16,17,2^8,1] [16,17,2^5,2]
 % n = 42; k = 12bits; [42,43,2^6,2] mind = 0.9065;
 % n = 64; k = 12,22bits; [64,67,2^12,1] [64,67,2^11,2]
-runtime = 3;
-parameter = [2^4,2^4,0,1,400,16];  %[Z,B,W,L,D] ;  [42,43,2^6,2];  %[Z,B,weight,B,L]
+runtime = 4; % [20,20,0,1,400,5,5] [5,5,0,1,400,2,3] [18,18,0,1,400,4,5] [42,42,0,1,400,7,7] [110,110,0,1,400,8,11]
+parameter = [2^4,2^4,0,1,400,0,17];  %[Z,B,W,L,D] ;  [42,43,2^6,2];[2^5,2^5,0,2,400,16,17]
 Z = parameter(1);
 B = parameter(2);
 L = parameter(4);
 D = parameter(5);
-n = parameter(6);
+% n = parameter(6);
 N = B*L;
+nrange= 3:N;
+lengthM = parameter(7);
 EbNo = -10*log10(L*log2(Z));
-weight = 1:9; weight = weight.';  % floor(parameter(2)/2)
+% weight = [1,6:9]; weight = weight.';  % floor(parameter(2)/2)
 % weight = 1;
-A = ones(size(weight,1),runtime)*(-1);
-Dmin = ones(size(weight,1),runtime)*(-1);
-totaltime = ones(size(weight,1),runtime)*(-1);
-xbestcl = cell(size(weight,1),runtime);
-ridx = HADidx(n,N);
-% i = 1; dminbest = 0;
-% while i <10
-% [codingmatrx,ridx] = HAD15_512(0);
-% [Dmin(1,1),A(1,1)] = PPMdmin(Z,L,codingmatrx,EbNo);
-% if Dmin(1,1) > dminbest
-%     dminbest = Dmin(1,1);
-%     ridxbest = ridx;
-% end
-% i = i+1;
-% end
-% save('ridx.mat','ridxbest');
-% cmatrix = HAD15_512(ridxbest);
-[Dmin(1,1),A(1,1)] = PPMdmin(Z,L,ridx,EbNo);
-parfor i = 2:length(weight)
+weight = 1: floor(B/2);
+% A = ones(size(weight,1),runtime,length(nrange))*(-1);
+Dmin = ones(size(weight,1),runtime,length(nrange))*(-1);
+totaltime = ones(size(weight,1),runtime,length(nrange))*(-1);
+xbestcl = cell(size(weight,1),runtime,length(nrange));
+%     [Dmin(1,1),A(1,1)] = PPMdmin(Z,L,ridx,EbNo);
+for nn = 1:length(nrange)
+n = nrange(nn);
+parfor i = 1:length(weight)
     w = weight(i);
     for j = 1:runtime
-     [totaltime(i,j),Dmin(i,j), A(i,j),xbestcl{i,j}] = GASPARCdmin(Z,B,w,L,D,EbNo,ridx);
+    ridx = ZCmatrix(lengthM,Z,L,N,n,EbNo,1);
+    [totaltime(i,j,nn),Dmin(i,j,nn), ~,xbestcl{i,j,nn}] = GASPARCdmin(Z,B,w,L,D,EbNo,ridx);
 %             [PPMdmins,PPMAdmins] = PPMdmin(My.Z,My.L,My.cmatrix,EbNoRange(k));
     end
+end
 end
 
 % parfor i = 1:length(weight)
@@ -71,7 +65,7 @@ My.optimald = D;
 My.populationSize = 300; % 150 ;
 My.crossoverProbability = 0.2;
 My.mutationProbability = 0.01; % 0.0625;
-My.numberOfGenerations = 2000;  % 250
+My.numberOfGenerations = 20000;  % 250
 My.tournamentSize = 2;  %10
 My.numberOfReplications = 0;  %2
 My.C = 100;
@@ -109,8 +103,17 @@ alpha = My.alpha;
 L = My.L;
 EbNo = My.EbNo;
 
+
+if M==1 && B==Z
+population = eye(B);
+population = reshape(population, 1,[]);
+numberOfGenerations = 1;
+else
 population = initialize(populationSize,M,B,Z);
+end
+
 oldmind = 0; oldAdmin = 0; tconverge = 0; totaltime = 0;
+    
 
 for iGeneration = 1: numberOfGenerations
     tic
@@ -145,7 +148,7 @@ for iGeneration = 1: numberOfGenerations
     oldAdmin = Admin;
     disp([w,iGeneration,mind]);
     
-    if check || tconverge>=150 || iGeneration == numberOfGenerations % totaltime >= 3000% 7200 control the time per search
+    if check || tconverge>=150 || iGeneration == numberOfGenerations % totaltime >= 40000% 7200 control the time per search
         disp(check);disp(tconverge);disp(totaltime);
         xBest = population(bestIndex,:);
 %         fprintf('This is time:');

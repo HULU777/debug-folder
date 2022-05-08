@@ -16,7 +16,7 @@ function [PPMdmin,PPMAdmin] = PPMdmin(Z,L,ridx,EbNo)
         codebookfull = hadamards(signalset);
         codebook = codebookfull(ridx,:);
     else
-        codebook = cmatrix*signalset;
+        codebook = ridx*signalset;
     end
     [n,b] = size(codebook);
     EbNo = 10^(EbNo/10);

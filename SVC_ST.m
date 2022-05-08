@@ -1,6 +1,8 @@
 % close all; clear all;
 %% parameter and coding matrix
-parameter = [15,4,9,2,1,5] ;  %[n,QAM,B,M,L,b0]    [15,1,33,2,1,9]    [15,1,9,2,1,5]
+% [15,4,9,2,1,5]
+% n=16; k=8,10bits   [16,4,7,2,1,4]  [16,4,12,2,1,6]
+parameter =  [16,4,7,2,1,4] ;  %[n,QAM,B,M,L,b0]    [15,1,33,2,1,9]    [15,1,9,2,1,5]
 n=parameter(1); % 64
 QAM=parameter(2); %67
 B = parameter(3);  % 2^12
@@ -54,13 +56,14 @@ EbNoRangeSNRdB = SNRrangedB - 10*log10( bits);
 EbNoRangedB = -2:0.2:12;
 
 k = 0; dminforUnitPowerbest = 0;
-while k < 1
+while k < 10
     miu = -1;
     cmatrix = rand(n,N)>0.5;
     cmatrix = -1*cmatrix;
     cmatrix(cmatrix==0) = 1;
-%     hmatrix = hadamard(32);
-%     cmatrix = hmatrix(7:21,2:10);  % 4:23,2:10
+    hmatrix = hadamard(32);
+%     cmatrix = hmatrix(7:22,2:13);  % 4:23,2:10
+    cmatrix = hmatrix(7:22,7:13);
     for i = 1:n-1
         for j = i+1:n
             miu = max(miu,cmatrix(i,:) * cmatrix(j,:).'/n);

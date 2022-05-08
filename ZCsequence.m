@@ -1,6 +1,6 @@
 close all; clear all;
 % X axis: SNR 
-parameter =  [42,43,2^6,2];  %[n,lengthM,B,L]   [16,17,2^8,1]  [42,43,2^6,2]
+parameter =   [16,17,2^8,1];  %[n,lengthM,B,L]   [16,17,2^8,1]  [42,43,2^6,2]
 n=parameter(1); % 64
 lengthM=parameter(2); %67
 B = parameter(3);  % 2^12
@@ -24,7 +24,7 @@ SNRrangedB = -6:1:4;
 EbNoRangeSNRdB = SNRrangedB - 10* log10( bits);
 
 EbNoRangedB = -2:0.2:10;
-i = 1; dminforUnitPowerbest = 0.9070;
+i = 1; dminforUnitPowerbest = 0.;
 while i <=500
     cidx = randperm(lengthM*(lengthM-1));
     selectcidx = cidx(1:N);
