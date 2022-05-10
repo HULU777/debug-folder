@@ -22,7 +22,6 @@ A = ones(size(weight,1),runtime)*(-1);
 Dmin = ones(size(weight,1),runtime)*(-1);
 totaltime = ones(size(weight,1),runtime)*(-1);
 xbestcl = cell(size(weight,1),runtime);
-
 ridx = ZCmatrix(lengthM,Z,L,N,n,EbNo,3);
 [Dmin(1,1),A(1,1)] = PPMdmin(Z,L,ridx,EbNo);
 for i = 2:length(weight)

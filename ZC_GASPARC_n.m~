@@ -32,7 +32,7 @@ parfor i = 1:length(weight)
     w = weight(i);
     for j = 1:runtime
 %     ridx = ZCmatrix(lengthM,Z,L,N,n,EbNo,1);
-    ridx = HADmatrix(n,N);
+
     codingmatrix{i,j,nn} = ridx;
     [totaltime(i,j,nn),Dmin(i,j,nn), ~,xbestcl{i,j,nn}] = GASPARCdmin(Z,B,w,L,D,EbNo,ridx);
 %             [PPMdmins,PPMAdmins] = PPMdmin(My.Z,My.L,My.cmatrix,EbNoRange(k));
