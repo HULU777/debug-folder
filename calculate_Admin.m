@@ -3,7 +3,7 @@ function Ddistribution = calculate_Admin(population,B,Z,EbNo)  % distance dminpa
     n = b/Z;   % Z codewords in each codebook
     Ddistribution = zeros(a,2); %n*2
     EbNo = 10^(EbNo/10);
-    nNP = EbNo*log2(Z);   % Power of the whole codebook sampling theorem
+    nNP = EbNo*log2(Z);   % Z = Z^L Power of the whole codebook sampling theorem
     for i = 1:a
         codebook = reshape(population(i,:),n,Z);
         [dminproperty,~] = calculateED(codebook,nNP,1);

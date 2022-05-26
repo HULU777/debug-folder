@@ -13,7 +13,8 @@ i = 1; dminforUnitPowerbest = 0;
 while i <=samples
     cidx = randperm(lengthM*(lengthM-1));
     selectcidx = cidx(1:N);
-    deleteridx = ceil(rand(lengthM-n,1)*lengthM);
+    ridxdelete = randperm(lengthM);
+    deleteridx = ridxdelete(1:(lengthM-n));
     cmatrix = F(:,selectcidx);
     cmatrix(deleteridx,:) = [];
 

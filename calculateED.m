@@ -1,4 +1,4 @@
-function [mindproperty,distance] = calculateED(matrix,P,countdmin)   % ,table  dmatrix  ,P
+function [mindproperty,distance,distance_eachpoint] = calculateED(matrix,P,countdmin)   % ,table  dmatrix  ,P
 % calculate the Euclidean mind of a given codebook  
 % when P = 1, averge symbol power  = 1,
 % calculate the dmin of codebook of EsNo=1 (No=1,Es = EsNo)
@@ -6,8 +6,12 @@ function [mindproperty,distance] = calculateED(matrix,P,countdmin)   % ,table  d
     
     % normalize the average power of codeword to P=n
     % thus, total codebook power is nN. 
-    Cpower = sum(sum(real(matrix).^2))+ sum(sum(imag(matrix).^2));   
-    nM = matrix./ sqrt(Cpower/(P*N));    % normMatrix  n*N
+    if P > 0
+        Cpower = sum(sum(real(matrix).^2))+ sum(sum(imag(matrix).^2));   
+        nM = matrix./ sqrt(Cpower/(P*N));    % normMatrix  n*N
+    else
+        nM = matrix;
+    end
 
     
 %     nM=matrix;
@@ -19,6 +23,7 @@ function [mindproperty,distance] = calculateED(matrix,P,countdmin)   % ,table  d
             distance_eachpoint(n,j) = norm(d1);
         end
     end
+%     dmatrix = tril(distance_eachpoint,-1);
     distance = reshape(distance_eachpoint,1,[]);
     if countdmin ==1
         dmin = min(distance);
@@ -33,6 +38,7 @@ function [mindproperty,distance] = calculateED(matrix,P,countdmin)   % ,table  d
         mindproperty =  distancetable(dmincountidx,[1,2]);
         mindproperty(:,1) = mindproperty(:,1)/100000;
     end
+    distance = reshape(distance/100000,N,N-1);
 %     disp('mind:'); disp(mindproperty(1,1));
 end
         

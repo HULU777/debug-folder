@@ -7,7 +7,7 @@ clear; close all; clc;
 % n = 42; k = 12bits; [42,43,2^6,2] mind = 0.9065;
 % n = 64; k = 12,22bits; [64,67,2^12,1] [64,67,2^11,2]
 runtime = 4; % [20,20,0,1,400,5,5] [5,5,0,1,400,2,3] [18,18,0,1,400,4,5] [42,42,0,1,400,7,7] [110,110,0,1,400,8,11]
-parameter = [2^4,2^4,0,1,400,0,17];  %[Z,B,W,L,D] ;  [42,43,2^6,2];[2^5,2^5,0,2,400,16,17]
+parameter = [2^3,2^3,0,1,400,0,11];  %[Z,B,W,L,D] ;  [42,43,2^6,2];  [2^5,2^5,0,2,400,16,17]
 Z = parameter(1);
 B = parameter(2);
 L = parameter(4);
@@ -31,8 +31,8 @@ n = nrange(nn);
 parfor i = 1:length(weight)
     w = weight(i);
     for j = 1:runtime
-%     ridx = ZCmatrix(lengthM,Z,L,N,n,EbNo,1);
-
+    ridx = ZCmatrix(lengthM,Z,L,N,n,EbNo,1);
+%     ridx = HADmatrix(n,N);
     codingmatrix{i,j,nn} = ridx;
     [totaltime(i,j,nn),Dmin(i,j,nn), ~,xbestcl{i,j,nn}] = GASPARCdmin(Z,B,w,L,D,EbNo,ridx);
 %             [PPMdmins,PPMAdmins] = PPMdmin(My.Z,My.L,My.cmatrix,EbNoRange(k));

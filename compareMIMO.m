@@ -1,20 +1,12 @@
-clear; close all; clc;
-
- %% parameters setting
-% [15,17,2^7,2] mind = 0.5541;
-% n = 15; k = 9bits; [15,29,2^9,1] mind = 0;
-% n = 16; k = 4,8,10bits; [16,17,2^4,1] [16,17,2^8,1] [16,17,2^5,2]
-% n = 42; k = 12bits; [42,43,2^6,2] mind = 0.9065;
-% n = 64; k = 12,22bits; [64,67,2^12,1] [64,67,2^11,2]
-runtime = 4; % [20,20,0,1,400,5,5] [5,5,0,1,400,2,3] [18,18,0,1,400,4,5] [42,42,0,1,400,7,7] [110,110,0,1,400,8,11]
-parameter = [2^4,2^4,0,1,400,0,11];  %[Z,B,W,L,D] ;  [42,43,2^6,2];  [2^5,2^5,0,2,400,16,17]
+runtime = 2; % [20,20,0,1,400,5,5] [5,5,0,1,400,2,3] [18,18,0,1,400,4,5] [42,42,0,1,400,7,7] [110,110,0,1,400,8,11]
+parameter = [5,5,0,1,400,5,7];  %[Z,B,W,L,D] ;  [42,43,2^6,2];  [2^5,2^5,0,2,400,16,17]
 Z = parameter(1);
 B = parameter(2);
 L = parameter(4);
 D = parameter(5);
 % n = parameter(6);
 N = B*L;
-nrange= 3:N;
+nrange= 3;% 3:N;  % 3:N;
 lengthM = parameter(7);
 EbNo = -10*log10(L*log2(Z));
 % weight = [1,6:9]; weight = weight.';  % floor(parameter(2)/2)
@@ -24,35 +16,23 @@ weight = 1: floor(B/2);
 Dmin = ones(size(weight,1),runtime,length(nrange))*(-1);
 totaltime = ones(size(weight,1),runtime,length(nrange))*(-1);
 xbestcl = cell(size(weight,1),runtime,length(nrange));
-codingmatrix = cell(size(weight,1),runtime,length(nrange));
-%     [Dmin(1,1),A(1,1)] = PPMdmin(Z,L,ridx,EbNo);
+% codingmatrix = cell(size(weight,1),runtime,length(nrange));
+DminMIMO = ones(size(weight,1),runtime,length(nrange))*(-1);
+totaltMIMO = ones(size(weight,1),runtime,length(nrange))*(-1);
+MPPMbest = cell(size(weight,1),runtime,length(nrange));
+dMatrixMPPM = cell(size(weight,1),runtime,length(nrange));
 for nn = 1:length(nrange)
 n = nrange(nn);
 for i = 1:length(weight)
     w = weight(i);
     for j = 1:runtime
-    ridx = ZCmatrix(lengthM,Z,L,N,n,EbNo,1);
-%     ridx = HADmatrix(n,N);
-    codingmatrix{i,j,nn} = ridx;
-    [totaltime(i,j,nn),Dmin(i,j,nn), ~,xbestcl{i,j,nn}] = GASPARCdmin(Z,B,w,L,D,EbNo,ridx);
-%             [PPMdmins,PPMAdmins] = PPMdmin(My.Z,My.L,My.cmatrix,EbNoRange(k));
+        ridx = ZCmatrix(lengthM,Z,L,N,n,EbNo,1);
+        [totaltMIMO(i,j,nn),DminMIMO(i,j,nn), dMatrixMPPM{i,j,nn},MPPMbest{i,j,nn}] = MIMO(B,L,w,Z,ridx,EbNo);
+        [totaltime(i,j,nn),Dmin(i,j,nn), ~,xbestcl{i,j,nn}] = GASPARCdmin(Z,B,w,L,D,EbNo,ridx);
     end
 end
 end
 
-% parfor i = 1:length(weight)
-%     w = weight(i);
-%     for j = 1:runtime
-%          [xBestcl,My] = GASPARCdmin(Z,B,w,L,D);
-%          [MPPM_dmin(:,:,i),MPPM_Admin(:,:,i)] = Dmin_for_EbNo(My.cmatrix,xBestcl,My.L,EbNoRange,countdmin);
-%          Pe(i,:) = WEF(MPPM_dmin(:,:,i), MPPM_Admin(:,:,i),My);
-%     end
-% end
-
-
-
-
- 
  function [totaltime,mind, Admin, xBestcl]=GASPARCdmin(Z,B,w,L,D,EbNo,ridx)
 % My = GA_Opt(); % default values of the option field
 My.coding ='Hadamard';  % 'None'
@@ -158,6 +138,10 @@ for iGeneration = 1: numberOfGenerations
 %         disp(iGeneration);
 %         fprintf('searched optimal result: \n');
         xBestcl= reshape(xBest,B,Z);  % a column is a codeword
+        % check (no power normalization)
+        codebook = ridx * xBestcl;
+        [~,dMatrix] = calculateED(codebook,0,2);
+        mind = min(min(dMatrix));
 %         disp(num2str(xBestcl));
 %         pause;
         break;
@@ -199,4 +183,3 @@ for iGeneration = 1: numberOfGenerations
 end
     t = toc;
  end
-    
